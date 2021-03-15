@@ -1,0 +1,423 @@
+set ns [ new Simulator ]
+set tf [ open lab1.tr w ]
+$ns trace-all $tf
+Set nf [ open lab1.nam w ]
+$ns namtrace-all $nf
+# The below code is used to create the nodes.
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+
+#This is used to give color to the flow of packets.
+$ns color 1 "red"
+$ns color 2 "blue"
+$n0 label "Source/udp0"
+$n1 label "Source/udp1"
+$n2 label "destination"
+#providing the link
+$ns duplex-link $n0 $n2 10kb 100ms DropTail
+$ns duplex-link $n1 $n2 10kb 10ms DropTail
+# set the queue size b/w the nodes
+$ns set queue-limit $n0 $n2 5
+$ns set queue-limit $n1 $n2 5
+set udp0 [new Agent/UDP]
+set udp1 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+$ns attach-agent $n1 $udp1
+set cbr0 [new Application/Traffic/CBR]
+set cbr1 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
+$cbr1 attach-agent $udp1
+set null0 [new Agent/Null]
+$ns attach-agent $n2 $null0
+#The below code sets the udp0 packets to red and udp1 packets to blue color
+$udp0 set class_ 1
+$udp1 set class_ 2
+
+#The below code is used to connect the agents.
+$ns connect $udp0 $null0
+$ns connect $udp1 $null0
+#The below code is used to set the packet size to 500
+$cbr0 set packetSize_ 500Mb
+$cbr1 set packetSize_ 500Mb
+#The below code is used to set the interval of the packets,
+$cbr0 set interval_ 0.01
+$cbr1 set interval_ 0.01
+proc finish { } {
+global ns n f tf
+$ns flush-trace
+exec nam lab1.nam &
+close $tf
+close $nf
+exit 0
+}
+$ns at 0.1 "$cbr0 start"
+$ns at 0.1 "$cbr1 start"
+$ns at 9.5 "$cbr0 stop"
+$ns at 10.0 "$cbr1 stop"
+$ns at 10.0 "finish"
+$ns run
+
+
+
+
+
+
+BEGIN{
+count=0;
+}
+{
+if($1=="d")
+count++ ;
+}
+END{
+printf("The Total no of Packets Dropped due to Congestion : %d\n\n", count)
+}
+
+
+
+
+
+set ns [new Simulator]
+set tf [open lab2.tr w] 
+LAB PROGRAMS
+Department of CSE, Dr.AIT Page 9
+$ns trace-all $tf
+set nf [open lab2.nam w]
+$ns namtrace-all $nf
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+# The below code is used to set the color and name's to the nodes.
+$ns color 1 "red"
+$ns color 2 "blue"
+$n0 label "Source/TCP"
+$n1 label "Source/UDP"
+$n2 label "Router"
+$n3 label "Destination"
+$ns duplex-link$n0 $n2 100Mb 1ms DropTail
+$nsduplex-link $n1 $n2 100Mb 1ms DropTail
+$ns duplex-link $n2 $n3 100Mb 1ms DropTail
+# The below code is used to set the color and labels to the links.
+$ns duplex-link-op $n0 $n2 color "green"
+$nsduplex-link-op $n0 $n2 label "from 0-2"
+$nsduplex-link-op $n1 $n2 color "green"
+$ns duplex-link-op $n1 $n2 label "from 1-2"
+$nsduplex-link-op $n2 $n3 color "green"
+$ns duplex-link-op $n2 $n3 label "from 2-3"
+# The below code is used create TCP and UDP agents and the
+# traffic ftp &cbr respectively.
+set tcp0 [new Agent/TCP]
+$ns attach-agent $n0 $tcp0
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $tcp0
+set sink3 [new Agent/TCPSink]
+$ns attach-agent $n3 $sink3
+set udp1 [new Agent/UDP]
+$ns attach-agent $n1 $udp1
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
+set null3 [new Agent/Null]
+$ns attach-agent $n3 $null3
+#The below code is used to set the packet size of ftp and udp.
+$ftp0 set packetSize_ 500
+$ftp0 set interval_ 0.001
+LAB PROGRAMS
+Department of CSE, Dr.AIT Page 10
+#The below code is used set the data rate
+$cbr1 set packetSize_ 500
+$cbr1 set interval_ 0.001
+#This code is used give a color red->tcp and blue ->udp.
+$tcp0 set class_ 1
+$udp1 set class_ 2
+# The below code is used connect the agents.
+$ns connect $tcp0 $sink3
+$ns connect $udp1 $null3
+proc finish { } {
+global ns nf tf
+$ns flush-trace
+exec nam lab2.nam &
+close $nf
+close $tf
+exit 0
+}
+$ns at 0.1 "$cbr1 start"
+$ns at 0.2 "$ftp0 start"
+$ns at 9.5 “$cbr1 stop"
+$ns at 9.5 “$ ftp0 stop"
+$ns at 10.0 "finish"
+$ns run
+
+
+
+BEGIN{
+tcp=0;
+udp=0;
+}
+{
+if($1=="r"&&$3=="2"&&$4=="3"&& $5=="tcp")
+tcp++;
+if($1=="r"&&$3=="2"&&$4=="3"&&$5=="cbr")
+udp++;
+}
+END{
+printf("\n Total number of packets sent by TCP : %d\n",tcp);
+printf("\n Total number of packets sent by UDP : %d\n",udp);
+} 
+
+
+
+
+
+
+
+
+set ns [new Simulator]
+set tf [open lan.tr w]
+$ns trace-all $tf
+set nf [open lan.nam w]
+$ns namtrace-all $nf
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+set n4 [$ns node]
+set n5 [$ns node]
+$ns color 1 "blue"
+$n1 label “Source"
+LAB PROGRAMS
+Department of CSE, Dr.AIT Page 15
+$n2 label "Error node"
+$n5 label "Destination"
+#The below code is used to create two Lans (Lan1 and Lan2).
+$ns make-lan "$n0 $n1 $n2" 10Mb 10ms LL Queue/DropTail Mac/802_3
+$ns make-lan "$n3 $n4 $n5" 10Mb 10ms LL Queue/DropTail Mac/802_3
+# connect node n2 and n4
+$ns duplex-link $n2 $n4 100Mb 10ms DropTail
+$ns duplex-link-op $n2 $n4 color "green"
+set udp1 [new Agent/UDP]
+$ns attach-agent $n1 $udp1
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
+set null5 [new Agent/Null]
+$ns attach-agent $n5 $null5
+$ns connect $udp1 $null5
+#data rate- change this to change the data rate
+$cbr1 set packetSize_ 1000
+$cbr1 set interval_ 0.001
+$udp1 set class_ 1
+# The below code is used to add an error model between the nodes n2 and n4.
+set err [new ErrorModel]
+$ns lossmodel $err $n2 $n4
+$err set rate_ 0.1
+proc finish {} {
+global ns tf nf
+$ns flush-trace
+exec nam lan.nam&
+close $tf
+close $nf
+exit 0
+}
+$ns at 0.1 "$cbr1 start"
+$ns at 6.0 "finish"
+$ns run
+
+
+
+AWK Script (lan.awk)
+
+
+
+BEGIN{
+pkt=0;
+time=0;
+}
+{
+if($1=="r"&& $9=="1.0" && $10=="5.0")
+{
+pkt=pkt+$6;
+time=$2;
+}
+}
+END{
+printf("Throughput: %f Mbps \n\n",(pkt/time)*(8/1000000));
+}
+
+
+
+
+
+set ns [new Simulator]
+set n0 [$ns node]
+set n1 [$ns node]
+$ns color 1 "red"
+$ns color 2 "blue"
+$ns at 0.0 "$n0 label Sender"
+$ns at 0.0 "$n1 label Receiver"
+set nf [open lab14.nam w]
+$ns namtrace-all "$nf"
+set f [open lab14.tr w]
+$ns trace-all $f
+$ns duplex-link $n0 $n1 0.2Mb 200ms DropTail
+$ns duplex-link-op $n0 $n1 orient right
+$ns queue-limit $n0 $n1 10
+set tcp [new Agent/TCP] 
+Agent/TCP set nam_tracevar_ true
+$tcp set window_ 1
+$tcp set maxcwnd_ 1
+$ns attach-agent $n0 $tcp
+set sink [new Agent/TCPSink]
+$ns attach-agent $n1 $sink
+set ftp [new Application/FTP]
+$ftp attach-agent $tcp
+$ns connect $tcp $sink
+$ns add-agent-trace $tcp tcp
+$ns monitor-agent-trace $tcp
+$tcp tracevar cwnd_
+$tcp set class_ 1
+$ns at 0.1 "$ftp start"
+$ns detach-agent $n0 $tcp 
+$ns detach-agent $n1 $sink
+$ns at 3.5 "finish"
+$ns at 0.0 "$ns trace-annotate \"Stop and Wait with normal operation\""
+$ns at 0.05 "$ns trace-annotate \"ftp starts at 0.1\""
+$ns at 0.11 "$ns trace-annotate \"Send packet_0\""
+$ns at 0.35 "$ns trace-annotate \"Receive Ack_0\""
+$ns at 0.56 "$ns trace-annotate \"Send packet_1\""
+$ns at 0.79 "$ns trace-annotate \"Receive Ack_1\""
+$ns at 0.99 "$ns trace-annotate \"Send packet_2\""
+$ns at 1.23 "$ns trace-annotate \"Receive Ack_2\""
+$ns at 1.43 "$ns trace-annotate \"Send packet_3\""
+$ns at 1.67 "$ns trace-annotate \"Receive Ack_3\""
+$ns at 1.88 "$ns trace-annotate \"Send packet_4\""
+$ns at 2.11 "$ns trace-annotate \"Receive Ack_4\""
+$ns at 2.32 "$ns trace-annotate \"Send packet_5\""
+$ns at 2.55 "$ns trace-annotate \"Receive Ack_5\""
+$ns at 2.75 "$ns trace-annotate \"Send packet_6\""
+$ns at 2.99 "$ns trace-annotate \"Receive Ack_6\""
+$ns at 3.1 "$ns trace-annotate \"ftp stops\""
+proc finish {} {
+global ns nf
+$ns flush-trace
+close $nf
+puts "running nam..."
+exec nam lab14.nam &
+exit 0
+}
+$ns run
+ 
+
+
+
+
+
+
+set ns [new Simulator]
+set tf [open wireless.tr w]
+$ns trace-all $tf
+set topo [new Topography]
+$topo load_flatgrid 700 700
+set nf [open wireless.nam w]
+$ns namtrace-all-wireless $nf 700 700
+$ns node-config -adhocRouting DSDV\
+-llType LL\
+-ifqType Queue/DropTail\
+-macType Mac/802_11\
+-ifqLen 50 \
+-phyTypePhy/WirelessPhy\
+-channelType Channel/WirelessChannel\
+-propType Propagation/TwoRayGround\
+-antType Antenna/OmniAntenna\
+-topoInstance $topo\
+-agentTrace ON\
+ -routerTrace ON
+create-god 4
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+$n0 label "tcp0"
+$n1 label "sink1"
+$n2 label "tcp1"
+$n3 label "sink2"
+#The below code is used to give the initial node positions.
+$n0 set X_ 50
+$n0 set Y_ 50
+$n0 set Z_ 0
+$n1 set X_ 200
+$n1 set Y_ 200
+$n1 set Z_ 0
+$n2 set X_ 400
+
+$n2 set Y_ 400
+$n2 set Z_ 0
+$n3 set X_ 600
+$n3 set Y_ 600
+$n3 set Z_ 0
+$ns at 0.1 "$n0 setdest 50 50 15"
+$ns at 0.1 "$n1 setdest 200 200 25"
+$ns at 0.1 "$n2 setdest 400 400 25"
+$ns at 0.1 "$n3 setdest 600 600 25"
+set tcp0 [new Agent/TCP]
+$ns attach-agent $n0 $tcp0
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $tcp0
+set sink1 [new Agent/TCPSink]
+$ns attach-agent $n1 $sink1
+$ns connect $tcp0 $sink1
+set tcp1 [new Agent/TCP]
+$ns attach-agent $n2 $tcp1
+set ftp1 [new Application/FTP]
+$ftp1 attach-agent $tcp1
+set sink2 [new Agent/TCPSink]
+$ns attach-agent $n3 $sink2
+$ns connect $tcp1 $sink2
+$ns at 5 "$ftp0 start"
+$ns at 10 "$ftp1 start"
+#The below code is used to give node movements .
+$ns at 100 "$n2 setdest 500 500 25"
+proc finish {} {
+globalnf ns tf
+$ns flush-trace
+exec nam wireless.nam&
+close $tf
+exit 0
+}
+$ns at 250 "finish"
+$ns run
+
+
+
+
+AWK Script (wireless.awk)
+
+
+BEGIN{
+count1=0
+count2=0
+pack1=0
+pack2=0
+time1=0
+time2=0
+}
+{
+if($1=="r" && $3=="_1_" && $4=="AGT")
+{
+count1++
+pack1=pack1+$8
+time1=$2
+}
+if($1=="r" && $3=="_3_" && $4=="AGT")
+{
+count2++
+pack2=pack2+$8
+time2=$2
+}
+}
+END{
+printf(" The Throughput from n0 to n1:
+%fMbps\n",((count1*pack1*8)/(time1*1000000)))
+printf(" The Throughput from n2 to n3:
+%fMbps\n",((count2*pack2*8)/(time2*1000000)))
+}
